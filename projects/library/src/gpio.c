@@ -44,10 +44,10 @@ void  GPIO_toggle(volatile  uint8_t *reg_name , uint8_t  pin_num)
     *reg_name ^= _BV(pin_num); 
 }
 
-void  GPIO_read(volatile  uint8_t *reg_name , uint8_t  pin_num)
+uint8_t GPIO_read(volatile  uint8_t *reg_name , uint8_t  pin_num)
 {
     // Return bit_is_clear(*reg_name, pin_num);
-    return((*reg_name & _BV(pin_num)) >> pin_num);
+    return ((*reg_name & _BV(pin_num)) >> pin_num);
 
     // si hay por ejemplo un 1 en posicion 4, hacemos operacion & _BV
     //que pone un bit a uno en la posicion pin_num, al hacer la oper. and
