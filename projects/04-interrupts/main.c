@@ -51,7 +51,9 @@ int main(void)
     sei();
 
     /* Infinite loop */
-    for (;;) {
+    for (;;)
+    {
+
     }
 
     return (0);
@@ -67,7 +69,7 @@ ISR(TIMER0_OVF_vect)
 }
 ISR(TIMER1_OVF_vect)
 {
-    // TODO: Toggle green LED
+    // TODO: Toggle red LED
     GPIO_toggle(&PORTB, LED_RED);
 }
 
