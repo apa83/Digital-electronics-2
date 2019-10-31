@@ -88,7 +88,13 @@ ISR(PCINT1_vect)
 ISR(TIMER1_OVF_vect)
 {
     // TODO: increment the value
-    SEG_putc(SEGMENT_LATCH, 0);
+    static uint8_t digit = 0;
+    digit++;
+    if(digit>9)
+    {
+        digit = 0;
+    }
+    SEG_putc(digit, 0);
 }
 
 
