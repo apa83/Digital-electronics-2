@@ -77,6 +77,11 @@ int main(void)
     /* TODO: Design at least two user characters and store them in 
      *       the display memory */
 
+    //LCD Character Generator link:
+        //https://maxpromer.github.io/LCD-Character-Creator/
+
+    //Heart
+
     uint8_t lcd_user_symbols [] = { 0x00,
                                     0x0A,
                                     0x15,
@@ -90,14 +95,10 @@ int main(void)
     lcd_command(1<<LCD_CGRAM);
 
     // Store  new  characters  line by line
-    lcd_data(lcd_user_symbols [0]);
-    lcd_data(lcd_user_symbols [1]);
-    lcd_data(lcd_user_symbols [2]);
-    lcd_data(lcd_user_symbols [3]);
-    lcd_data(lcd_user_symbols [4]);
-    lcd_data(lcd_user_symbols [5]);
-    lcd_data(lcd_user_symbols [6]);
-    lcd_data(lcd_user_symbols [7]);
+    for(i = 0; i < 8; i++)
+    {
+        lcd_data(lcd_user_symbols [i]);
+    }
 
     // Clear  display  and  set  cursor  to home  position
     lcd_clrscr ();
@@ -135,6 +136,4 @@ ISR(TIMER1_OVF_vect)
         lcd_puts(lcd_string);
 
         value = value - 1;
-
-
 }
