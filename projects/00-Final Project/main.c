@@ -1,106 +1,147 @@
-/*
- ---------------------------------------------------------------------
-  Author:      Jose Ramon Hoz & Antonio Perojo
-               Brno Univ. of Technology
-  Created:     2018-12-03
-  Last update: 2019-XX-XX
-  Platform:    ATmega328P, 16 MHz, AVR 8-bit Toolchain 3.6.2
- ---------------------------------------------------------------------
-  Description:
-    Timer that shows how much time has the poker player left in his turn. 
-*/
+/**
+ * Copyright (c) 2017-2018, Łukasz Marcin Podkalicki <lpodkalicki@gmail.com>
+ *
+ * This is ATtiny13 "Running Digits" example using attiny-tm1637-library,
+ * https://github.com/lpodkalicki/attiny-tm1637-library .
+ *
+ */
 
 /* Includes ----------------------------------------------------------*/
-#include <stdlib.h>         // itoa() function
+#include <stdint.h>
 #include <avr/io.h>
-#include <avr/interrupt.h>
-#include "gpio.h"
-#include "segment.h"
-#include "timer.h"
-#include <TM1637Display.h>
-
+#include <util/delay.h>
+#include "tm1637.h"
 
 /* Typedef -----------------------------------------------------------*/
-typedef enum {
-    START = 1,
-    STOP,
-    RESET
-} state_t;
-
 /* Define ------------------------------------------------------------*/
+#define BTN1   PD2
+#define BTN2   PD3
 
 /* Variables ---------------------------------------------------------*/
-state_t current_state = START;
-
 /* Function prototypes -----------------------------------------------*/
-//void fsm_buttons(void);
+/* Functions ---------------------------------------------------------*/
 
 int main(void)
 {
-    /* 7-segment display interface
-       TODO: Configure 7-segment display pins */
+    int8_t k;
+    int8_t k1 = 0;
 
-    GPIO_config_output(&DDRB, SEGMENT_DATA);
-    GPIO_config_output(&DDRD, SEGMENT_CLK);
-    GPIO_config_output(&DDRD, SEGMENT_LATCH);
+    int8_t i;
+    int8_t i1 = 0;
 
-    //Timer1 configuration for value incrementation
-    TIM_config_prescaler(TIM1, TIM_PRESC_256);
-    TIM_config_interrupt(TIM1, TIM_OVERFLOW_ENABLE);
+	int8_t j;
+    int8_t j1 = 9;
 
-    // Enable interrupts by setting the global interrupt mask
-    sei();
+	/* setup */
+	TM1637_init(1/*enable*/, 15/*brightness*/);
+    TM1637_clear();
 
-    // Infinite loop
-    for (;;)
+    //TM1637_display_digit(0, 0);
+    TM1637_display_digit(1, 0);
+    TM1637_display_digit(2, 0);
+    TM1637_display_digit(3, 9);
+    TM1637_display_colon(1);
+
+    //PUSH BUTTON1 -> Start / Stop / Reset
+    //   set    bits    to   low
+    DDRD |= ~_BV(BTN1);
+
+    //PUSH BUTTON2 -> Increment value of the counter
+    //   set    bits    to   low
+    DDRD |= ~_BV(BTN2);
+
+    here:
+
+    while(1)
     {
-        //TODO: Use function to display digit 1 at position 0
-        SEG_putc(9, 0);
+        if(bit_is_set(PIND, BTN2))
+        {
+            i1++;
+
+            if(i1 > 5)
+            {
+                k1++;
+                i1 = 0;
+            }
+
+            TM1637_display_digit(1, k1);
+            TM1637_display_digit(2, i1);
+            TM1637_display_digit(3, j1);
+            _delay_ms(500);
+        }
+        
+        if(bit_is_set(PIND, BTN1))
+        {
+            break;
+        }
     }
 
-    return (0);
-}
+    _delay_ms(500);
 
-/**
- *  Brief: Timer1 overflow interrupt routine. Update state of Finite
- *         State Machine.
- */
-
-ISR(TIMER1_OVF_vect)
-{
-    // TODO: SHOW THE TIME LEFT
-
-    static uint8_t digit = 0;
-    digit++;
-    if(digit>9)
+    while(1)
     {
-        digit = 0;
+        if(bit_is_set(PIND, BTN1))
+        {
+            TM1637_clear();
+
+            for(k = k1; k >= 0; k--)
+            {
+                TM1637_display_digit(1, k);
+
+                for(i = i1; i >= 0; i--)
+                {          
+                    TM1637_display_digit(2, i);
+                    
+                    for(j = j1; j >= 0; j--)
+                    {
+                        TM1637_display_digit(3, j);
+                        TM1637_display_colon(0);
+                        _delay_ms(500);
+                        TM1637_display_colon(1);
+                        _delay_ms(500);               
+                    }
+                }
+
+                i1 = 5;
+            }
+
+            break;
+        }        
     }
-    SEG_putc(digit, 0);
-}
+
+    //PARPADEO CUANDO LLEGUE LA CUENTA A CERO
+    while(1)
+    {
+        if(bit_is_set(PIND, BTN2))
+        {
+
+            k1 = 0;
+            i1 = -1;
+            j1 = 9;
+            goto here;
+        }
+
+        TM1637_init(0/*disable*/, 15/*brightness*/);
+        _delay_ms(100);
+        TM1637_init(1/*enable*/, 15/*brightness*/);
+        _delay_ms(100);
+    }
+
+	/* loop que funciona*/
 /*
-void fsm_buttons(void)
-{
-    switch (current_state) {
-    case START:
-    
-        current_state = STOP;
-        
-        break;
+	while (1)
+    {
+		for (n = 0; n < TM1637_POSITION_MAX; ++n)
+        {
+			TM1637_display_digit(n, (k + n) % 0x10);
+		}
 
-    case STOP:
-        
-        current_state = RESET;
-        
-        break;
+		TM1637_display_colon(1);
+		_delay_ms(200);
+		TM1637_display_colon(0);
+		_delay_ms(200);
 
-    case RESET:
-
-        current_state = START;
-        
-        break;
-
-    default:
-        current_state = START;
-    }*/
-
+		k++;
+	}
+*/
+}
